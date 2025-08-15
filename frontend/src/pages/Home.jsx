@@ -10,11 +10,18 @@ export default function Home() {
         <h1>Dobrodošli v RecFinder</h1>
         <p>
           Povežite se z drugimi igralci in poiščite športne dogodke v svoji
-          bližini.
+          bližini!
         </p>
 
         {user ? (
-          <div style={{ display: "flex", justifyContent: "center", gap: "1rem", flexWrap: "wrap" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: "1rem",
+              flexWrap: "wrap",
+            }}
+          >
             <Link to="/events" className="btn">
               Poglej dogodke
             </Link>
@@ -23,7 +30,14 @@ export default function Home() {
             </button>
           </div>
         ) : (
-          <div style={{ display: "flex", justifyContent: "center", gap: "1rem", flexWrap: "wrap" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: "1rem",
+              flexWrap: "wrap",
+            }}
+          >
             <Link to="/login" className="btn">
               Prijava
             </Link>
