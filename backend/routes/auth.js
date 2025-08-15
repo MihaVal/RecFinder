@@ -1,30 +1,28 @@
 const express = require('express');
-const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const { generateToken, authenticateToken } = require('../middleware/auth');
 const router = express.Router();
 
-router.post('/register', [
-  body('email').isEmail().normalizeEmail(),
-  body('password').isLength({ min: 6 }),
-  body('name').trim().isLength({ min: 1 }),
-  body('surname').trim().isLength({ min: 1 }),
-  body('phone').optional().isMobilePhone()
-], async (req, res) => {
+router.post('/register', async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
     const { email, password, name, surname, phone } = req.body;
 
-    const existingUser = await User.findByEmail(email);
+    if (!email || !password || !name || !surname) {
+      return res.status(400).json({ message: 'Email, password, name and surname are required' });
+    }
+
+    const existingUser = await User.findByEmail(email.toLowerCase().trim());
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    const user = await User.create({ email, password, name, surname, phone });
+    const user = await User.create({ 
+      email: email.toLowerCase().trim(), 
+      password, 
+      name: name.trim(), 
+      surname: surname.trim(), 
+      phone 
+    });
     const token = generateToken(user.id);
 
     res.status(201).json({
@@ -38,24 +36,23 @@ router.post('/register', [
   }
 });
 
-router.post('/login', [
-  body('email').isEmail().normalizeEmail(),
-  body('password').exists()
-], async (req, res) => {
+router.post('/login', async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+    const { email, password } = req.body;
+    console.log('Login attempt:', { email, password: password ? '***' : 'missing' });
+
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password required' });
     }
 
-    const { email, password } = req.body;
-
-    const user = await User.findByEmail(email);
+    const user = await User.findByEmail(email.toLowerCase().trim());
+    console.log('Found user:', user ? 'yes' : 'no');
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     const isValidPassword = await User.validatePassword(password, user.password);
+    console.log('Password valid:', isValidPassword);
     if (!isValidPassword) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
