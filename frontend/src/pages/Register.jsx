@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Register() {
   const { register } = useAuth();
@@ -8,6 +8,7 @@ export default function Register() {
 
   const nameRef = useRef(null);
   const [name, setName] = useState("");
+  const [surname, setSurname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -16,14 +17,20 @@ export default function Register() {
     nameRef.current?.focus();
   }, []);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    const ok = register(name.trim(), email.trim(), password);
-    if (ok) {
-      setError("");
-      navigate("/"); // or "/events" if you prefer
-    } else {
-      setError("Uporabnik s tem e-poštnim naslovom že obstaja.");
+    setError("");
+    
+    try {
+      const success = await register(name.trim(), surname.trim(), email.trim(), password);
+      if (success) {
+        navigate("/events");
+      } else {
+        setError("Uporabnik s tem e-poštnim naslovom že obstaja.");
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      setError("Napaka pri registraciji. Poskusite ponovno.");
     }
   }
 
@@ -45,10 +52,23 @@ export default function Register() {
               id="name"
               ref={nameRef}
               type="text"
-              placeholder="npr. Luka Novak"
+              placeholder="npr. Luka"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              autoComplete="name"
+              autoComplete="given-name"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="surname">Priimek</label>
+            <input
+              id="surname"
+              type="text"
+              placeholder="npr. Novak"
+              value={surname}
+              onChange={(e) => setSurname(e.target.value)}
+              autoComplete="family-name"
               required
             />
           </div>

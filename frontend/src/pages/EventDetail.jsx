@@ -1,18 +1,43 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { storage } from "../lib/storage";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext.jsx";
+import { api } from "../config/api";
 
 export default function EventDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [events, setEvents] = useState(() => storage.get("rf_events", []));
-  const ev = useMemo(() => events.find((e) => e.id === id), [events, id]);
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => storage.set("rf_events", events), [events]);
+  useEffect(() => {
+    async function fetchEvent() {
+      try {
+        setLoading(true);
+        const response = await api.events.getById(id);
+        setEvent(response);
+      } catch (error) {
+        console.error('Failed to fetch event:', error);
+        setEvent(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchEvent();
+  }, [id]);
 
-  if (!ev) {
+  if (loading) {
+    return (
+      <div className="container">
+        <div className="card" style={{ marginTop: 16 }}>
+          Nalaganje...
+        </div>
+      </div>
+    );
+  }
+
+  if (!event) {
     return (
       <div className="container">
         <div className="card" style={{ marginTop: 16 }}>
@@ -25,30 +50,34 @@ export default function EventDetail() {
     );
   }
 
-  const isOwner = user?.email === ev.creatorEmail;
-  const participants = Array.isArray(ev.participants) ? ev.participants : [];
+  const isOwner = user?.email === event.creatorEmail;
+  const participants = Array.isArray(event.participants) ? event.participants : [];
   const iJoined = !!participants.find((p) => p.email === user?.email);
 
-  function toggleJoin() {
+  async function toggleJoin() {
     if (!user || isOwner) return;
-    const updated = events.map((e) => {
-      if (e.id !== ev.id) return e;
-      const list = Array.isArray(e.participants) ? [...e.participants] : [];
-      const me = { email: user.email, name: user.name };
-      const idx = list.findIndex((p) => p.email === me.email);
-      if (idx >= 0) list.splice(idx, 1);
-      else list.push(me);
-      return { ...e, participants: list };
-    });
-    setEvents(updated);
+    try {
+      if (iJoined) {
+        await api.events.leave(event.id);
+      } else {
+        await api.events.join(event.id);
+      }
+      // Refresh event data
+      const updatedEvent = await api.events.getById(id);
+      setEvent(updatedEvent);
+    } catch (error) {
+      console.error('Failed to toggle join:', error);
+    }
   }
 
-  function remove() {
+  async function remove() {
     if (!confirm("Ali ste prepričani, da želite izbrisati ta dogodek?")) return;
-    const updated = events.filter((e) => e.id !== ev.id);
-    storage.set("rf_events", updated);
-    setEvents(updated);
-    navigate("/events");
+    try {
+      await api.events.delete(event.id);
+      navigate("/events");
+    } catch (error) {
+      console.error('Failed to delete event:', error);
+    }
   }
 
   return (
@@ -58,25 +87,25 @@ export default function EventDetail() {
           className="row"
           style={{ justifyContent: "space-between", alignItems: "center" }}
         >
-          <h2 style={{ margin: 0 }}>{ev.sport}</h2>
+          <h2 style={{ margin: 0 }}>{event.sport}</h2>
         </div>
 
         <div className="row">
-          <span className="badge">{ev.location}</span>
+          <span className="badge">{event.location}</span>
           <span className="badge">
-            {ev.date} {ev.time}
+            {new Date(event.dateTime).toLocaleDateString('sl-SI')} {new Date(event.dateTime).toLocaleTimeString('sl-SI', {hour: '2-digit', minute: '2-digit'})}
           </span>
-          <span className="badge">Nivo: {ev.level}</span>
-          {ev.ageGroup && (
-            <span className="badge">Starostna skupina: {ev.ageGroup}</span>
+          <span className="badge">Nivo: {event.skillLevel}</span>
+          {event.ageGroup && (
+            <span className="badge">Starostna skupina: {event.ageGroup}</span>
           )}
         </div>
 
-        {ev.description && <p>{ev.description}</p>}
+        {event.description && <p>{event.description}</p>}
 
         <div className="row" style={{ justifyContent: "space-between" }}>
           <div className="row">
-            <span className="badge">Objavil: {ev.creatorName}</span>
+            <span className="badge">Objavil: {event.creatorName}</span>
             <span className="badge">Udeleženci: {participants.length}</span>
           </div>
           <div className="row">
@@ -87,7 +116,7 @@ export default function EventDetail() {
             )}
             {isOwner && (
               <>
-                <Link className="btn ghost" to={`/events/${ev.id}/edit`}>
+                <Link className="btn ghost" to={`/events/${event.id}/edit`}>
                   Uredi
                 </Link>
                 <button className="btn ghost" onClick={remove}>

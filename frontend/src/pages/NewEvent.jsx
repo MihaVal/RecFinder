@@ -63,60 +63,77 @@ export default function NewEvent() {
       <div className="card">
         <h2>Nov dogodek</h2>
         {error && <div className="error-message">{error}</div>}
-        <form onSubmit={submit} className="grid">
-          <label>Šport</label>
-          <select value={sport} onChange={(e) => setSport(e.target.value)}>
-            {SPORTS.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
+        <form onSubmit={submit} className="form">
+          <div className="form-group">
+            <label>Šport</label>
+            <select value={sport} onChange={(e) => setSport(e.target.value)}>
+              {SPORTS.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <label>Lokacija</label>
-          <input
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            required
-          />
+          <div className="form-group">
+            <label>Lokacija</label>
+            <input
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="npr. Ljubljansko kopalište"
+              required
+            />
+          </div>
 
-          <label>Datum</label>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-          />
+          <div className="form-group">
+            <label>Datum</label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              required
+            />
+          </div>
 
-          <label>Čas</label>
-          <input
-            type="time"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            required
-          />
+          <div className="form-group">
+            <label>Čas</label>
+            <input
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              required
+            />
+          </div>
 
-          <label>Težavnost (1–5)</label>
-          <input
-            type="number"
-            min="1"
-            max="5"
-            value={level}
-            onChange={(e) => setLevel(e.target.value)}
-            required
-          />
+          <div className="form-group">
+            <label>Težavnost (1–5)</label>
+            <input
+              type="number"
+              min="1"
+              max="5"
+              value={level}
+              onChange={(e) => setLevel(e.target.value)}
+              required
+            />
+          </div>
 
-          <label>Starostna skupina</label>
-          <input
-            value={ageGroup}
-            onChange={(e) => setAgeGroup(e.target.value)}
-          />
+          <div className="form-group">
+            <label>Starostna skupina</label>
+            <input
+              value={ageGroup}
+              onChange={(e) => setAgeGroup(e.target.value)}
+              placeholder="npr. 18-30 let"
+            />
+          </div>
 
-          <label>Opis</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
+          <div className="form-group">
+            <label>Opis</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Kratka opisba dogodka..."
+            />
+          </div>
 
           <button className="btn" type="submit" disabled={loading}>
             {loading ? 'Ustvarjanje...' : 'Ustvari'}

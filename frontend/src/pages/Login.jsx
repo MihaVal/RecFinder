@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Login() {
   const { login } = useAuth();
@@ -16,14 +16,20 @@ export default function Login() {
     emailRef.current?.focus();
   }, []);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    const ok = login(email.trim(), password);
-    if (ok) {
-      setError("");
-      navigate("/"); // send to Home (change to "/events" if you prefer)
-    } else {
-      setError("Napačen e-poštni naslov ali geslo.");
+    setError("");
+    
+    try {
+      const success = await login(email.trim(), password);
+      if (success) {
+        navigate("/events");
+      } else {
+        setError("Napačen e-poštni naslov ali geslo.");
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError("Napaka pri prijavi. Poskusite ponovno.");
     }
   }
 

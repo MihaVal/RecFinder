@@ -33,10 +33,10 @@ export function AuthProvider({ children }) {
     checkAuth();
   }, [user]);
 
-  async function register(name, email, password) {
+  async function register(name, surname, email, password) {
     try {
       setLoading(true);
-      const response = await api.auth.register({ name, email, password });
+      const response = await api.auth.register({ name, surname, email, password });
       
       localStorage.setItem('rf_token', response.token);
       localStorage.setItem('rf_user', JSON.stringify(response.user));
