@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { storage } from "../lib/storage";
+import { api } from "../config/api";
 import { useAuth } from "../context/AuthContext";
-import { v4 as uuidv4 } from "uuid";
 
 const SPORTS = [
   "Nogomet",
@@ -23,32 +22,47 @@ export default function NewEvent() {
   const [level, setLevel] = useState(1);
   const [ageGroup, setAgeGroup] = useState("");
   const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault();
-    const events = storage.get("rf_events", []);
-    events.push({
-      id: uuidv4(),
-      sport,
-      location,
-      date,
-      time,
-      level,
-      ageGroup,
-      description,
-      creatorName: user.name,
-      creatorEmail: user.email,
-      participants: [],
-    });
-    storage.set("rf_events", events);
-    navigate("/events");
+    
+    if (!user) {
+      setError('Morate biti prijavljeni za ustvarjanje dogodkov');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const eventData = {
+        sport,
+        location,
+        date,
+        time,
+        level: parseInt(level),
+        ageGroup,
+        description,
+      };
+
+      await api.events.create(eventData);
+      navigate("/events");
+    } catch (err) {
+      console.error('Failed to create event:', err);
+      setError('Napaka pri ustvarjanju dogodka');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <div className="container">
       <div className="card">
         <h2>Nov dogodek</h2>
+        {error && <div className="error-message">{error}</div>}
         <form onSubmit={submit} className="grid">
           <label>Šport</label>
           <select value={sport} onChange={(e) => setSport(e.target.value)}>
@@ -104,7 +118,9 @@ export default function NewEvent() {
             onChange={(e) => setDescription(e.target.value)}
           />
 
-          <button className="btn">Ustvari</button>
+          <button className="btn" type="submit" disabled={loading}>
+            {loading ? 'Ustvarjanje...' : 'Ustvari'}
+          </button>
         </form>
       </div>
     </div>

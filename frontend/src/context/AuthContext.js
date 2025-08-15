@@ -1,59 +1,79 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { storage } from "../lib/storage";
+import { api } from "../config/api";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => storage.get("rf_user", null));
+  const [user, setUser] = useState(() => {
+    const token = localStorage.getItem('rf_token');
+    const userData = localStorage.getItem('rf_user');
+    return token && userData ? JSON.parse(userData) : null;
+  });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    storage.set("rf_user", user);
+    const checkAuth = async () => {
+      const token = localStorage.getItem('rf_token');
+      if (token && !user) {
+        try {
+          setLoading(true);
+          const response = await api.auth.me();
+          setUser(response.user);
+          localStorage.setItem('rf_user', JSON.stringify(response.user));
+        } catch (error) {
+          console.error('Auth check failed:', error);
+          localStorage.removeItem('rf_token');
+          localStorage.removeItem('rf_user');
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    checkAuth();
   }, [user]);
 
-  function register(name, email, password) {
-    const users = storage.get("rf_users", []);
-    if (users.some((u) => u.email === email)) return false;
-
-    const newUser = {
-      id: crypto.randomUUID(),
-      name,
-      email,
-      password,
-      role: "UPORABNIK",
-    };
-    users.push(newUser);
-    storage.set("rf_users", users);
-
-    setUser({
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-      role: newUser.role,
-    });
-    return true;
+  async function register(name, email, password) {
+    try {
+      setLoading(true);
+      const response = await api.auth.register({ name, email, password });
+      
+      localStorage.setItem('rf_token', response.token);
+      localStorage.setItem('rf_user', JSON.stringify(response.user));
+      setUser(response.user);
+      return true;
+    } catch (error) {
+      console.error('Registration failed:', error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function login(email, password) {
-    const users = storage.get("rf_users", []);
-    const found = users.find(
-      (u) => u.email === email && u.password === password
-    );
-    if (!found) return false;
-
-    setUser({
-      id: found.id,
-      name: found.name,
-      email: found.email,
-      role: found.role,
-    });
-    return true;
+  async function login(email, password) {
+    try {
+      setLoading(true);
+      const response = await api.auth.login({ email, password });
+      
+      localStorage.setItem('rf_token', response.token);
+      localStorage.setItem('rf_user', JSON.stringify(response.user));
+      setUser(response.user);
+      return true;
+    } catch (error) {
+      console.error('Login failed:', error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
   }
 
   function logout() {
+    localStorage.removeItem('rf_token');
+    localStorage.removeItem('rf_user');
     setUser(null);
   }
 
-  const value = useMemo(() => ({ user, register, login, logout }), [user]);
+  const value = useMemo(() => ({ user, register, login, logout, loading }), [user, loading]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
