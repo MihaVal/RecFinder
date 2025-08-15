@@ -15,13 +15,10 @@ const SPORTS = [
 
 export default function NewEvent() {
   const { user } = useAuth();
-  const [title, setTitle] = useState("");
   const [sport, setSport] = useState(SPORTS[0]);
   const [location, setLocation] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [maxParticipants, setMaxParticipants] = useState(10);
-  const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -39,13 +36,11 @@ export default function NewEvent() {
       setError(null);
       
       const eventData = {
-        title,
         sport,
         location,
-        date,
-        time,
-        maxParticipants,
-        description,
+        dateTime: `${date}T${time}:00.000Z`,
+        skillLevel: 1,
+        ageGroup: '',
       };
 
       await api.events.create(eventData);
@@ -64,16 +59,6 @@ export default function NewEvent() {
         <h2>Nov dogodek</h2>
         {error && <div className="error-message">{error}</div>}
         <form onSubmit={submit} className="form">
-          <div className="form-group">
-            <label>Naslov dogodka</label>
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="npr. Jutranji tek v Tivoliju"
-              required
-            />
-          </div>
-
           <div className="form-group">
             <label>Šport</label>
             <select value={sport} onChange={(e) => setSport(e.target.value)}>
@@ -115,26 +100,6 @@ export default function NewEvent() {
             />
           </div>
 
-          <div className="form-group">
-            <label>Maksimalno število udeležencev</label>
-            <input
-              type="number"
-              min="2"
-              max="100"
-              value={maxParticipants}
-              onChange={(e) => setMaxParticipants(parseInt(e.target.value))}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Opis</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Kratek opis dogodka..."
-            />
-          </div>
 
           <button className="btn" type="submit" disabled={loading}>
             {loading ? 'Ustvarjanje...' : 'Ustvari'}

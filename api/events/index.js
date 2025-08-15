@@ -73,23 +73,21 @@ module.exports = async function handler(req, res) {
         process.env.JWT_SECRET || 'your-secret-key-change-in-production'
       );
 
-      const { title, description, sport, date, time, location, maxParticipants } = req.body;
+      const { sport, location, dateTime, skillLevel, ageGroup } = req.body;
 
-      if (!title || !sport || !date || !time || !location) {
+      if (!sport || !location || !dateTime) {
         return res.status(400).json({ 
-          message: 'Title, sport, date, time, and location are required' 
+          message: 'Sport, location, and dateTime are required' 
         });
       }
 
       const newEvent = await Event.create({
-        title,
-        description: description || '',
         sport,
-        date,
-        time,
         location,
-        maxParticipants: maxParticipants || 10,
-        creatorId: decoded.id
+        dateTime,
+        skillLevel: skillLevel || 1,
+        ageGroup: ageGroup || '',
+        createdById: decoded.id
       });
 
       return res.status(201).json(newEvent);

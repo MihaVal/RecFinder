@@ -33,23 +33,22 @@ class User {
 
 // Event model
 class Event {
-  static async create({ title, description, sport, date, time, location, maxParticipants, creatorId }) {
+  static async create({ sport, location, dateTime, skillLevel, ageGroup, createdById }) {
     const query = `
-      INSERT INTO events (title, description, sport, date, time, location, "maxParticipants", "creatorId")
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      INSERT INTO events (sport, location, "dateTime", "skillLevel", "ageGroup", "createdById")
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `;
-    const result = await db.query(query, [title, description, sport, date, time, location, maxParticipants, creatorId]);
+    const result = await db.query(query, [sport, location, dateTime, skillLevel, ageGroup, createdById]);
     return result.rows[0];
   }
 
   static async findAll() {
     const query = `
-      SELECT e.*, u.name as "creatorName", u.surname as "creatorSurname",
-             (SELECT COUNT(*) FROM event_attendees ea WHERE ea."eventId" = e.id) as "currentParticipants"
+      SELECT e.*, u.name as "creatorName", u.surname as "creatorSurname"
       FROM events e
-      LEFT JOIN users u ON e."creatorId" = u.id
-      ORDER BY e."createdAt" DESC
+      LEFT JOIN users u ON e."createdById" = u.id
+      ORDER BY e."dateTime" ASC
     `;
     const result = await db.query(query);
     return result.rows;
@@ -57,25 +56,23 @@ class Event {
 
   static async findById(id) {
     const query = `
-      SELECT e.*, u.name as "creatorName", u.surname as "creatorSurname",
-             (SELECT COUNT(*) FROM event_attendees ea WHERE ea."eventId" = e.id) as "currentParticipants"
+      SELECT e.*, u.name as "creatorName", u.surname as "creatorSurname"
       FROM events e
-      LEFT JOIN users u ON e."creatorId" = u.id
+      LEFT JOIN users u ON e."createdById" = u.id
       WHERE e.id = $1
     `;
     const result = await db.query(query, [id]);
     return result.rows[0];
   }
 
-  static async update(id, { title, description, sport, date, time, location, maxParticipants }) {
+  static async update(id, { sport, location, dateTime, skillLevel, ageGroup }) {
     const query = `
       UPDATE events 
-      SET title = $1, description = $2, sport = $3, date = $4, time = $5, 
-          location = $6, "maxParticipants" = $7
-      WHERE id = $8
+      SET sport = $1, location = $2, "dateTime" = $3, "skillLevel" = $4, "ageGroup" = $5
+      WHERE id = $6
       RETURNING *
     `;
-    const result = await db.query(query, [title, description, sport, date, time, location, maxParticipants, id]);
+    const result = await db.query(query, [sport, location, dateTime, skillLevel, ageGroup, id]);
     return result.rows[0];
   }
 
