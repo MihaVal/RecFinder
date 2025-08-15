@@ -1,8 +1,8 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { v4 as uuidv4 } from 'uuid';
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { User } = require('../_shared/models');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -30,18 +30,20 @@ export default async function handler(req, res) {
       });
     }
 
-    // For demo purposes, we'll just create a token
-    // In production, check if user exists in database and store the new user
-    
-    // Create user object (not storing password for demo)
-    const user = {
-      id: uuidv4(),
-      email: email.toLowerCase(),
-      name,
-      surname,
-      phone,
-      createdAt: new Date().toISOString()
-    };
+    // Check if user already exists
+    const existingUser = await User.findByEmail(email.toLowerCase().trim());
+    if (existingUser) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+
+    // Create user in database
+    const user = await User.create({ 
+      email: email.toLowerCase().trim(), 
+      password, 
+      name: name.trim(), 
+      surname: surname.trim(), 
+      phone 
+    });
 
     // Generate JWT token
     const token = jwt.sign(

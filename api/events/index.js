@@ -1,37 +1,7 @@
-import jwt from 'jsonwebtoken';
+const jwt = require('jsonwebtoken');
+const { Event } = require('../_shared/models');
 
-// Local events store for demo (resets on each request in serverless)
-// In production, use a database
-const events = new Map([
-  ['1', {
-    id: '1',
-    title: 'Jutranji tek v Tivoliju',
-    description: 'Skupinski tek po Tivoliju za vse nivoje',
-    sport: 'Tek',
-    date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    time: '07:00',
-    location: 'Tivoli, Ljubljana',
-    maxParticipants: 20,
-    currentParticipants: 5,
-    creatorId: '1',
-    createdAt: new Date().toISOString()
-  }],
-  ['2', {
-    id: '2',
-    title: 'Nogomet na Kodeljevem',
-    description: 'Rekreacijski nogomet, pridružite se!',
-    sport: 'Nogomet',
-    date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-    time: '18:00',
-    location: 'ŠP Kodeljevo, Ljubljana',
-    maxParticipants: 14,
-    currentParticipants: 8,
-    creatorId: '1',
-    createdAt: new Date().toISOString()
-  }]
-]);
-
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -49,7 +19,7 @@ export default async function handler(req, res) {
   // GET all events
   if (req.method === 'GET') {
     try {
-      const allEvents = Array.from(events.values());
+      const allEvents = await Event.findAll();
       return res.status(200).json(allEvents);
     } catch (error) {
       console.error('Get events error:', error);
@@ -80,8 +50,7 @@ export default async function handler(req, res) {
         });
       }
 
-      const newEvent = {
-        id: Date.now().toString(),
+      const newEvent = await Event.create({
         title,
         description: description || '',
         sport,
@@ -89,12 +58,8 @@ export default async function handler(req, res) {
         time,
         location,
         maxParticipants: maxParticipants || 10,
-        currentParticipants: 1,
-        creatorId: decoded.id,
-        createdAt: new Date().toISOString()
-      };
-
-      events.set(newEvent.id, newEvent);
+        creatorId: decoded.id
+      });
 
       return res.status(201).json(newEvent);
     } catch (error) {

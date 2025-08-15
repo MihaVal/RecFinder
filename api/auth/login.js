@@ -1,7 +1,8 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { User } = require('../_shared/models');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -27,35 +28,17 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    // Demo credentials check (in production, use a database)
-    let user = null;
-    
-    // Check for demo user
-    if (email.toLowerCase() === 'demo@example.com') {
-      const validPassword = await bcrypt.compare(password, '$2a$10$SjEpgyLwNak7cRgNArjHQOOqBZaJ/cbcD3QBgj0WGqzDK09JadMSS');
-      if (validPassword) {
-        user = {
-          id: '1',
-          email: 'demo@example.com',
-          name: 'Demo',
-          surname: 'User'
-        };
-      }
-    }
-    
-    // For any other email/password combination, create a temporary user
-    // This is ONLY for demo purposes - in production use a real database
-    if (!user && email && password) {
-      // Accept any login for demo
-      user = {
-        id: Date.now().toString(),
-        email: email.toLowerCase(),
-        name: email.split('@')[0],
-        surname: 'User'
-      };
-    }
+    // Find user in database
+    const user = await User.findByEmail(email.toLowerCase().trim());
     
     if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Validate password
+    const isValid = await User.validatePassword(password, user.password);
+    
+    if (!isValid) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
