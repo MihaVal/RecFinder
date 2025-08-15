@@ -7,25 +7,17 @@
       "config": {
         "distDir": "dist"
       }
-    },
-    {
-      "src": "backend/api/index.js",
-      "use": "@vercel/node"
     }
   ],
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "backend/api/index.js"
-    },
     {
       "src": "/(.*)",
       "dest": "frontend/dist/$1"
     }
   ],
-  "env": {
-    "NODE_ENV": "production",
-    "DATABASE_URL": "@database_url",
-    "JWT_SECRET": "@jwt_secret"
+  "functions": {
+    "api/*.js": {
+      "runtime": "@vercel/node@3"
+    }
   }
 }
