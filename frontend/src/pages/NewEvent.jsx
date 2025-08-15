@@ -41,10 +41,9 @@ export default function NewEvent() {
       const eventData = {
         sport,
         location,
-        date,
-        time,
-        level: parseInt(level),
-        ageGroup,
+        dateTime: `${date}T${time}:00.000Z`,
+        skillLevel: parseInt(level),
+        ageGroup: ageGroup || '',
         description,
       };
 
@@ -80,7 +79,7 @@ export default function NewEvent() {
             <input
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              placeholder="npr. Ljubljansko kopalište"
+              placeholder="npr. Ljubljanski grad, Tivoli park"
               required
             />
           </div>
@@ -122,7 +121,7 @@ export default function NewEvent() {
             <input
               value={ageGroup}
               onChange={(e) => setAgeGroup(e.target.value)}
-              placeholder="npr. 18-30 let"
+              placeholder="npr. 20-35 let"
             />
           </div>
 
@@ -131,7 +130,7 @@ export default function NewEvent() {
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Kratka opisba dogodka..."
+              placeholder="Kratek opis dogodka..."
             />
           </div>
 
