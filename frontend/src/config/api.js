@@ -52,12 +52,54 @@ export const api = {
 
   // Events endpoints
   events: {
-    getAll: () => api.request('/events'),
+    async getAll() {
+      try {
+        // Poskusi dobiti iz API
+        const apiEvents = await api.request('/events');
+        
+        // Dobi lokalne dogodke iz localStorage
+        const localEvents = JSON.parse(localStorage.getItem('rf_local_events') || '[]');
+        
+        // Združi API in lokalne dogodke
+        const allEvents = [...apiEvents, ...localEvents];
+        
+        return allEvents;
+      } catch (error) {
+        // Če API ne deluje, vrni samo lokalne dogodke
+        console.warn('API not available, using local events only');
+        return JSON.parse(localStorage.getItem('rf_local_events') || '[]');
+      }
+    },
+    
     getById: (id) => api.request(`/events/${id}`),
-    create: (eventData) => api.request('/events', {
-      method: 'POST',
-      body: eventData,
-    }),
+    
+    async create(eventData) {
+      try {
+        // Poskusi ustvariti preko API
+        const newEvent = await api.request('/events', {
+          method: 'POST',
+          body: eventData,
+        });
+        return newEvent;
+      } catch (error) {
+        // Če API ne deluje, shrani lokalno
+        console.warn('API not available, saving locally');
+        
+        const newEvent = {
+          id: Date.now().toString(),
+          ...eventData,
+          currentParticipants: 1,
+          createdAt: new Date().toISOString()
+        };
+        
+        const localEvents = JSON.parse(localStorage.getItem('rf_local_events') || '[]');
+        localEvents.push(newEvent);
+        localStorage.setItem('rf_local_events', JSON.stringify(localEvents));
+        
+        return newEvent;
+      }
+    },
+    
     update: (id, eventData) => api.request(`/events/${id}`, {
       method: 'PUT',
       body: eventData,
