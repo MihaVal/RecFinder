@@ -43,20 +43,17 @@ router.get('/', [
   }
 });
 
-router.post('/', authenticateToken, [
-  body('sport').trim().isLength({ min: 1 }),
-  body('location').trim().isLength({ min: 1 }),
-  body('dateTime').isISO8601(),
-  body('skillLevel').isInt({ min: 1, max: 5 }),
-  body('ageGroup').trim().isLength({ min: 1 })
-], async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+    const { sport, location, dateTime, skillLevel, ageGroup, description } = req.body;
+
+    if (!sport || !location || !dateTime || !skillLevel) {
+      return res.status(400).json({ message: 'Sport, location, dateTime and skillLevel are required' });
     }
 
-    const { sport, location, dateTime, skillLevel, ageGroup } = req.body;
+    if (skillLevel < 1 || skillLevel > 5) {
+      return res.status(400).json({ message: 'Skill level must be between 1 and 5' });
+    }
     
     const eventDateTime = new Date(dateTime);
     if (eventDateTime <= new Date()) {
@@ -68,7 +65,8 @@ router.post('/', authenticateToken, [
       location,
       dateTime: eventDateTime,
       skillLevel,
-      ageGroup,
+      ageGroup: ageGroup || null,
+      description: description || null,
       createdById: req.user.id
     });
 
