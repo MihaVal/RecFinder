@@ -10,6 +10,11 @@
     "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
     "vercel-build": "cd frontend && npm install && npm run build"
   },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "uuid": "^11.1.0"
+  },
   "engines": {
     "node": ">=18.0.0"
   },
