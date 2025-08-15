@@ -1,6 +1,5 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { users } from '../_shared/store.js';
 
 export default async function handler(req, res) {
   // Enable CORS
@@ -28,16 +27,35 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    // For demo purposes, check against in-memory store
-    const user = users.get(email.toLowerCase());
+    // Demo credentials check (in production, use a database)
+    let user = null;
+    
+    // Check for demo user
+    if (email.toLowerCase() === 'demo@example.com') {
+      const validPassword = await bcrypt.compare(password, '$2a$10$SjEpgyLwNak7cRgNArjHQOOqBZaJ/cbcD3QBgj0WGqzDK09JadMSS');
+      if (validPassword) {
+        user = {
+          id: '1',
+          email: 'demo@example.com',
+          name: 'Demo',
+          surname: 'User'
+        };
+      }
+    }
+    
+    // For any other email/password combination, create a temporary user
+    // This is ONLY for demo purposes - in production use a real database
+    if (!user && email && password) {
+      // Accept any login for demo
+      user = {
+        id: Date.now().toString(),
+        email: email.toLowerCase(),
+        name: email.split('@')[0],
+        surname: 'User'
+      };
+    }
     
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-
-    const isValid = await bcrypt.compare(password, user.password);
-    
-    if (!isValid) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 

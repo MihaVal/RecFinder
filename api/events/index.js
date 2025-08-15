@@ -1,5 +1,35 @@
 import jwt from 'jsonwebtoken';
-import { events } from '../_shared/store.js';
+
+// Local events store for demo (resets on each request in serverless)
+// In production, use a database
+const events = new Map([
+  ['1', {
+    id: '1',
+    title: 'Jutranji tek v Tivoliju',
+    description: 'Skupinski tek po Tivoliju za vse nivoje',
+    sport: 'Tek',
+    date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    time: '07:00',
+    location: 'Tivoli, Ljubljana',
+    maxParticipants: 20,
+    currentParticipants: 5,
+    creatorId: '1',
+    createdAt: new Date().toISOString()
+  }],
+  ['2', {
+    id: '2',
+    title: 'Nogomet na Kodeljevem',
+    description: 'Rekreacijski nogomet, pridružite se!',
+    sport: 'Nogomet',
+    date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+    time: '18:00',
+    location: 'ŠP Kodeljevo, Ljubljana',
+    maxParticipants: 14,
+    currentParticipants: 8,
+    creatorId: '1',
+    createdAt: new Date().toISOString()
+  }]
+]);
 
 export default async function handler(req, res) {
   // Enable CORS

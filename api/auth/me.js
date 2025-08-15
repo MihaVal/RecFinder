@@ -1,5 +1,4 @@
 import jwt from 'jsonwebtoken';
-import { users } from '../_shared/store.js';
 
 export default async function handler(req, res) {
   // Enable CORS
@@ -34,19 +33,14 @@ export default async function handler(req, res) {
       process.env.JWT_SECRET || 'your-secret-key-change-in-production'
     );
 
-    // Find user
-    const user = users.get(decoded.email);
-    
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
+    // For demo, return the decoded token data
+    // In production, fetch from database
     res.status(200).json({
       user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        surname: user.surname
+        id: decoded.id,
+        email: decoded.email,
+        name: decoded.email.split('@')[0],
+        surname: 'User'
       }
     });
   } catch (error) {
