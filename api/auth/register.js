@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import { users } from './_store.js';
+import { users } from '../_shared/store.js';
 
 export default async function handler(req, res) {
   // Enable CORS

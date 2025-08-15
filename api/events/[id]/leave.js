@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { users } from '../_shared/store.js';
+import { eventParticipants } from '../../_shared/store.js';
 
 export default async function handler(req, res) {
   // Enable CORS
@@ -16,47 +16,46 @@ export default async function handler(req, res) {
     return;
   }
 
-  if (req.method !== 'GET') {
+  if (req.method !== 'DELETE') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
   try {
+    // Check authentication
     const authHeader = req.headers.authorization;
-    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ message: 'No token provided' });
+      return res.status(401).json({ message: 'Authentication required' });
     }
 
     const token = authHeader.substring(7);
-    
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET || 'your-secret-key-change-in-production'
     );
 
-    // Find user
-    const user = users.get(decoded.email);
-    
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+    const { id } = req.query;
+    if (!id) {
+      return res.status(400).json({ message: 'Event ID is required' });
     }
 
-    res.status(200).json({
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        surname: user.surname
-      }
+    const participants = eventParticipants.get(id);
+    
+    if (!participants || !participants.has(decoded.id)) {
+      return res.status(400).json({ message: 'Not a participant of this event' });
+    }
+
+    participants.delete(decoded.id);
+
+    return res.status(200).json({ 
+      message: 'Successfully left event',
+      eventId: id,
+      userId: decoded.id
     });
   } catch (error) {
-    console.error('Auth check error:', error);
+    console.error('Leave event error:', error);
     if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({ message: 'Invalid token' });
     }
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ message: 'Token expired' });
-    }
-    res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: 'Server error' });
   }
 }
