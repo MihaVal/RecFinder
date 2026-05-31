@@ -11,6 +11,8 @@ const Home = () => {
     return (
         <div className="home">
             <RecList /*this is a prop ->*/recs={recs} title="Posts:"/>
+            <RecList /*this is a prop ->*/recs={recs.filter((rec) => rec.author === 'Jalen')} title="Jalen's Posts:"/>
+
         </div>
     );
 }
