@@ -8,10 +8,15 @@ const Home = () => {
         {sport: 'Tennis', desc: 'lorem ipsum...', pLimit: 3, author: 'Andy', id:3}
 
     ]);
+
+    const handleDelete = (id) => {
+        const newRecs = recs.filter(rec => rec.id !== id);
+        setRecs(newRecs);
+    }
+    
     return (
         <div className="home">
-            <RecList /*this is a prop ->*/recs={recs} title="Posts:"/>
-            <RecList /*this is a prop ->*/recs={recs.filter((rec) => rec.author === 'Jalen')} title="Jalen's Posts:"/>
+            <RecList /*this is a prop ->*/recs={recs} title="Posts:" handleDelete={handleDelete}/>
 
         </div>
     );
