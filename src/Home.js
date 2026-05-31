@@ -1,4 +1,5 @@
 import { useState } from "react";
+import RecList from "./RecList";
 
 const Home = () => {    
     const [recs, setRecs] = useState([
@@ -9,13 +10,7 @@ const Home = () => {
     ]);
     return (
         <div className="home">
-        {recs.map((rec) => (
-            <div className="rec-preview" key={rec.id}>
-                <h2>{rec.sport}</h2>
-                <p>Posted by: {rec.author}</p>
-            </div>
-            
-        ))}
+            <RecList /*this is a prop ->*/recs={recs} title="Posts:"/>
         </div>
     );
 }
